@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPHIES Eligibility — Waseel eClaims</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+.topbar { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0 24px; height: 54px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.logo { font-size: 16px; font-weight: 700; color: #1D9E75; }
+.logo span { font-weight: 400; color: #aaa; font-size: 12px; margin-left: 6px; }
+.main { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+.card { background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.tabs { display: flex; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+.tab { flex: 1; padding: 12px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; background: #fff; color: #666; transition: all .15s; }
+.tab.active { background: #1D9E75; color: #fff; }
+label { display: block; font-size: 11px; font-weight: 600; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+input, select, textarea { width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 7px; font-size: 13px; color: #333; background: #fff; transition: border-color .15s; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,.1); }
+textarea { min-height: 110px; font-family: monospace; resize: vertical; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.row4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.fg { margin-bottom: 14px; }
+.btn { padding: 9px 18px; border: none; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: #1D9E75; color: #fff; width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
+.btn-primary:hover { background: #0F6E56; }
+.btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+.btn-outline { background: #fff; color: #1D9E75; border: 1.5px solid #1D9E75; }
+.btn-outline:hover { background: #f0fdf9; }
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 6px; }
+.btn-danger { background: #fff; color: #e53e3e; border: 1.5px solid #e53e3e; }
+.btn-danger:hover { background: #fff5f5; }
+.token-row { display: flex; gap: 8px; margin-bottom: 6px; }
+.token-row input { flex: 1; }
+.token-row .btn { white-space: nowrap; width: auto; padding: 9px 16px; }
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat { background: #f8fffe; border: 1px solid #c6f0e2; border-radius: 9px; padding: 14px; text-align: center; }
+.stat-val { font-size: 20px; font-weight: 700; color: #1D9E75; }
+.stat-lbl { font-size: 10px; color: #999; margin-top: 3px; text-transform: uppercase; letter-spacing: .4px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.info-box { background: #f8f9fa; border-radius: 9px; padding: 14px; }
+.info-box h3 { font-size: 10px; font-weight: 700; color: #aaa; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 10px; }
+.info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 12px; gap: 10px; }
+.info-row:last-child { border-bottom: none; }
+.info-key { color: #999; flex-shrink: 0; }
+.info-val { font-weight: 500; text-align: right; word-break: break-word; }
+.elig-ok { background: #dcfce7; border: 1px solid #86efac; border-radius: 9px; padding: 13px 16px; color: #166534; font-size: 13px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.elig-err { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 9px; padding: 13px 16px; color: #991b1b; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.elig-warn { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 9px; padding: 13px 16px; color: #92400e; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.tob-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { background: #f8f9fa; color: #666; font-weight: 600; font-size: 10px; padding: 9px 10px; text-align: left; border-bottom: 2px solid #e8e8e8; white-space: nowrap; text-transform: uppercase; letter-spacing: .4px; }
+td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+tr:hover td { background: #fafffe; }
+.cat-row td { background: #f8f9fa !important; font-weight: 700; font-size: 10px; color: #555; padding: 6px 10px; border-top: 1px solid #e8e8e8; }
+.cat-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 8px; }
+.unlimited { color: #166534; font-weight: 700; }
+.progress-bg { background: #e8e8e8; border-radius: 4px; height: 8px; overflow: hidden; margin: 8px 0; }
+.progress-bar { height: 100%; background: #1D9E75; border-radius: 4px; transition: width .3s; }
+.err-box { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 9px; padding: 13px 16px; color: #991b1b; font-size: 13px; margin-bottom: 12px; }
+.drop-zone { border: 2px dashed #ddd; border-radius: 9px; padding: 18px; text-align: center; cursor: pointer; color: #aaa; font-size: 13px; margin-bottom: 14px; transition: all .15s; }
+.drop-zone:hover { border-color: #1D9E75; color: #1D9E75; background: #f0fdf9; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+.spinner-g { border-color: rgba(29,158,117,.2); border-top-color: #1D9E75; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.divider { height: 1px; background: #f0f0f0; margin: 16px 0; }
+.section-title { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.tob-expand { background: #fafffe; }
+.tob-expand-inner { padding: 14px 18px; border-top: 1px solid #e8e8e8; }
+.actions { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">NPHIES Eligibility <span>Waseel eClaims · Final</span></div>
+  <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+    <span id="branch-label" style="font-size:12px; font-weight:500; color:#1D9E75; background:#f0fdf9; padding:4px 10px; border-radius:6px; border:1px solid #c6f0e2;"></span>
+    <span id="tok-status" style="font-size:11px; color:#aaa;">No token</span>
+    <button class="btn btn-outline btn-sm" onclick="toggleSettings()">⚙ Settings</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- SETTINGS -->
+<div id="settings-panel" style="display:none;" class="card">
+  <div class="section-title">⚙ Settings</div>
+  <label>Bearer Token — get from eclaims.waseel.com → F12 → Network → any request → Headers → Authorization</label>
+  <div class="token-row">
+    <input id="tok" type="password" placeholder="Bearer eyJhbGciOiJSUzI1NiJ9...">
+    <button class="btn btn-primary" onclick="saveToken()" style="width:auto;">Save Token</button>
+  </div>
+  <div id="tok-msg" style="font-size:11px; color:#1D9E75; margin-bottom:14px;"></div>
+  <div class="divider"></div>
+  <div class="section-title">🏥 Branch → Provider ID Mapping</div>
+  <div style="font-size:12px; color:#888; margin-bottom:12px;">Switch branch in Waseel portal → check number in URL → enter here</div>
+  <div class="row3">
+    <div class="fg"><label>Jeddah</label><input id="b-JEDDAH" placeholder="e.g. 649" value="649"></div>
+    <div class="fg"><label>SGH</label><input id="b-SGH" placeholder="Provider ID"></div>
+    <div class="fg"><label>Riyadh</label><input id="b-RIYADH" placeholder="Provider ID"></div>
+    <div class="fg"><label>Dammam</label><input id="b-DAMMAM" placeholder="Provider ID"></div>
+    <div class="fg"><label>Hail</label><input id="b-HAIL" placeholder="Provider ID"></div>
+    <div class="fg"><label>Makkah</label><input id="b-MAKKAH" placeholder="Provider ID"></div>
+    <div class="fg"><label>Beverly</label><input id="b-BEVERLY" placeholder="Provider ID"></div>
+    <div class="fg"><label>Al Jamia</label><input id="b-AL_JAMIA" placeholder="Provider ID"></div>
+    <div class="fg"><label>Abha</label><input id="b-ABHA" placeholder="Provider ID"></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveBranches()" style="width:auto; padding:9px 20px;">Save Branch Settings</button>
+  <span id="branch-msg" style="font-size:11px; color:#1D9E75; margin-left:10px;"></span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-single" onclick="setTab('single')">👤 Single Verification</button>
+  <button class="tab" id="tab-bulk" onclick="setTab('bulk')">👥 Bulk Verification</button>
+</div>
+
+<!-- SINGLE PANEL -->
+<div id="single-panel">
+  <div class="card">
+    <div class="row3">
+      <div class="fg">
+        <label>Branch</label>
+        <select id="s-branch" onchange="updateBranchLabel()">
+          <option value="JEDDAH">Jeddah</option>
+          <option value="SGH">SGH - Security Forces Hospital</option>
+          <option value="RIYADH">Riyadh</option>
+          <option value="DAMMAM">Dammam</option>
+          <option value="HAIL">Hail</option>
+          <option value="MAKKAH">Makkah</option>
+          <option value="BEVERLY">Beverly Hills Hospital</option>
+          <option value="AL_JAMIA">Al Jamia</option>
+          <option value="ABHA">Abha</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>ID Type <span style="color:#1D9E75; font-size:10px;">(auto-detected)</span></label>
+        <select id="s-idtype">
+          <option value="NI">National ID (starts with 1)</option>
+          <option value="PRC" selected>Iqama (starts with 2)</option>
+          <option value="PP">Passport</option>
+          <option value="GCC">GCC ID</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>ID Number</label>
+        <input id="s-idnum" type="text" placeholder="e.g. 2317015614" maxlength="20" oninput="autoSetType(this.value, 's-idtype')">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-single" onclick="runSingle()">🛡 Verify Eligibility</button>
+  </div>
+  <div id="single-result"></div>
+</div>
+
+<!-- BULK PANEL -->
+<div id="bulk-panel" style="display:none;">
+  <div class="card">
+    <div class="row3">
+      <div class="fg">
+        <label>Branch</label>
+        <select id="b-branch-sel">
+          <option value="JEDDAH">Jeddah</option>
+          <option value="SGH">SGH - Security Forces Hospital</option>
+          <option value="RIYADH">Riyadh</option>
+          <option value="DAMMAM">Dammam</option>
+          <option value="HAIL">Hail</option>
+          <option value="MAKKAH">Makkah</option>
+          <option value="BEVERLY">Beverly Hills Hospital</option>
+          <option value="AL_JAMIA">Al Jamia</option>
+          <option value="ABHA">Abha</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>ID Type <span style="color:#1D9E75; font-size:10px;">(auto-detected per ID)</span></label>
+        <select id="b-idtype">
+          <option value="AUTO" selected>Auto-detect (recommended)</option>
+          <option value="NI">National ID</option>
+          <option value="PRC">Iqama</option>
+          <option value="PP">Passport</option>
+          <option value="GCC">GCC ID</option>
+        </select>
+      </div>
+      <div class="fg" style="display:flex; flex-direction:column; justify-content:flex-end;">
+        <span id="b-count" style="font-size:12px; color:#666; margin-bottom:6px;">0 IDs entered</span>
+        <button class="btn btn-danger btn-sm" onclick="clearBulk()">🗑 Clear</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label>ID Numbers — one per line (mix of NI and Iqama is fine)</label>
+      <textarea id="b-ids" placeholder="2317015614&#10;1041185289&#10;1221963885&#10;..." oninput="updateCount()"></textarea>
+    </div>
+    <div class="drop-zone" onclick="document.getElementById('b-file').click()">
+      📂 Upload Excel / CSV — ID numbers in column A
+      <input type="file" id="b-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="loadFile(event)">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-primary" id="btn-bulk" onclick="runBulk()" style="flex:1;">▶ Process All IDs</button>
+      <button class="btn btn-outline" id="btn-pause" style="display:none; width:auto;" onclick="togglePause()">⏸ Pause</button>
+    </div>
+  </div>
+
+  <div id="b-progress" style="display:none;" class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span id="b-prog-label" style="font-size:13px; font-weight:500;">Processing...</span>
+      <div class="actions">
+        <button class="btn btn-outline btn-sm" id="btn-export-bulk" style="display:none;" onclick="exportBulkExcel()">📥 Export All Excel</button>
+      </div>
+    </div>
+    <div class="progress-bg"><div class="progress-bar" id="b-prog-bar" style="width:0%"></div></div>
+    <div style="display:flex; justify-content:space-between; font-size:11px; color:#aaa; margin-top:4px;">
+      <span id="b-prog-nums">0 / 0</span>
+      <span id="b-prog-stats"></span>
+    </div>
+  </div>
+
+  <div id="b-results"></div>
+</div>
+
+</div>
+
+<script>
+var bulkPaused  = false;
+var bulkResults = [];
+var singleData  = null;
+var BRANCHES    = { JEDDAH: "649", SGH: "", RIYADH: "", DAMMAM: "", HAIL: "", MAKKAH: "", BEVERLY: "", AL_JAMIA: "", ABHA: "" };
+var BRANCH_NAMES = { JEDDAH:"Jeddah", SGH:"SGH", RIYADH:"Riyadh", DAMMAM:"Dammam", HAIL:"Hail", MAKKAH:"Makkah", BEVERLY:"Beverly", AL_JAMIA:"Al Jamia", ABHA:"Abha" };
+var DOC_LABELS  = { NI: "National ID", PRC: "Iqama", PP: "Passport", GCC: "GCC ID", AUTO: "Auto" };
+
+var CAT_COLORS = {
+  "Health Benefit Plan Coverage": "#dcfce7|#166534",
+  "Medical Coverage":             "#dbeafe|#1e40af",
+  "Maternity":                    "#fce7f3|#831843",
+  "Renal dialysis":               "#fef3c7|#92400e",
+  "Vision Coverage":              "#ede9fe|#4c1d95",
+  "Hearing Coverage":             "#dcfce7|#14532d",
+  "Hospital Room and Board":      "#f3f4f6|#374151",
+  "OP Prescribed Generic and Invented Medicines - with no generic alternative available": "#fef3c7|#92400e",
+  "OP Prescribed Invented Medicines - with generic alternative": "#fee2e2|#991b1b",
+  "OP Prescribed Generic Medicines": "#fef3c7|#92400e",
+  "OP Prescribed Branded Medicines": "#fee2e2|#991b1b"
+};
+
+function catStyle(c) {
+  var s = CAT_COLORS[c] || "#f3f4f6|#374151";
+  var p = s.split("|");
+  return "background:" + p[0] + ";color:" + p[1];
+}
+
+function fmtLimit(v, c) {
+  if (v === null || v === undefined || v === "") return "--";
+  var n = parseFloat(v);
+  if (isNaN(n)) return v;
+  if (n >= 9000000) return "Unlimited";
+  return n.toLocaleString("en-SA") + (c ? " " + c : "");
+}
+
+function autoDetectType(id) {
+  var s = String(id || "").trim();
+  if (s.startsWith("1")) return "NI";
+  if (s.startsWith("2")) return "PRC";
+  return "PRC";
+}
+
+function autoSetType(val, selectId) {
+  var detected = autoDetectType(val);
+  var el = document.getElementById(selectId);
+  if (el && el.value !== "PP" && el.value !== "GCC") {
+    el.value = detected;
+  }
+}
+
+function getPid(branch) {
+  return BRANCHES[branch] || branch || "649";
+}
+
+function updateBranchLabel() {
+  var branch = document.getElementById("s-branch").value;
+  var pid = getPid(branch);
+  var lbl = document.getElementById("branch-label");
+  if (lbl) lbl.textContent = BRANCH_NAMES[branch] + " · Provider " + (pid || "not set");
+}
+
+// Load branches from server on startup
+async function loadBranches() {
+  try {
+    var r = await fetch("/api/branches");
+    var d = await r.json();
+    Object.assign(BRANCHES, d);
+    Object.keys(d).forEach(function(k) {
+      var el = document.getElementById("b-" + k);
+      if (el && d[k]) el.value = d[k];
+    });
+    updateBranchLabel();
+  } catch(e) {}
+}
+loadBranches();
+
+function toggleSettings() {
+  var p = document.getElementById("settings-panel");
+  p.style.display = p.style.display === "none" ? "block" : "none";
+}
+
+async function saveToken() {
+  var t = document.getElementById("tok").value.trim();
+  if (!t) { alert("Please paste your Bearer token"); return; }
+  var r = await fetch("/config/token", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: t })
+  });
+  var d = await r.json();
+  if (d.ok) {
+    document.getElementById("tok-msg").textContent = "✓ Token saved";
+    document.getElementById("tok-status").textContent = "✓ Token set";
+    document.getElementById("tok-status").style.color = "#1D9E75";
+    document.getElementById("tok").value = "";
+  }
+}
+
+async function saveBranches() {
+  var payload = {};
+  Object.keys(BRANCHES).forEach(function(k) {
+    var el = document.getElementById("b-" + k);
+    if (el) payload[k] = el.value.trim();
+  });
+  var r = await fetch("/config/branches", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  var d = await r.json();
+  if (d.ok) {
+    Object.assign(BRANCHES, d.branches);
+    document.getElementById("branch-msg").textContent = "✓ Saved";
+    updateBranchLabel();
+    setTimeout(function() { document.getElementById("branch-msg").textContent = ""; }, 2000);
+  }
+}
+
+function setTab(t) {
+  document.getElementById("tab-single").className = "tab" + (t === "single" ? " active" : "");
+  document.getElementById("tab-bulk").className   = "tab" + (t === "bulk"   ? " active" : "");
+  document.getElementById("single-panel").style.display = t === "single" ? "block" : "none";
+  document.getElementById("bulk-panel").style.display   = t === "bulk"   ? "block" : "none";
+}
+
+function parseTOB(data) {
+  var cov = data.coverages && data.coverages[0];
+  if (!cov || !cov.items) return [];
+  var rows = [];
+  Object.entries(cov.items).forEach(function(entry) {
+    var cat  = entry[0].replace(/\.$/, "").trim();
+    entry[1].forEach(function(item) {
+      var b     = item.benefits || [];
+      var bft   = b.find(function(x) { return x.type === "Benefit"; });
+      var cpPct = b.find(function(x) { return x.type === "Copayment Percent per service"; });
+      var cpMax = b.find(function(x) { return x.type === "Copayment maximum per service"; });
+      var room  = b.find(function(x) { return x.type === "Room"; });
+      rows.push({
+        cat:      cat,
+        name:     item.name,
+        desc:     item.description || "",
+        network:  item.network     || "In Network",
+        term:     (item.term || "").replace("Annual, renewing on the anniversary", "Annual"),
+        limit:    fmtLimit(bft && bft.value, bft && bft.currency),
+        limitRaw: parseFloat((bft && bft.value) || 0),
+        copay:    cpPct ? cpPct.value + "%" : "--",
+        maxCopay: cpMax ? fmtLimit(cpMax.value, "SAR") : "--",
+        room:     room  ? room.value : null
+      });
+    });
+  });
+  return rows;
+}
+
+function buildTOBTable(rows) {
+  if (!rows.length) return "<p style='color:#aaa;padding:10px 0;font-size:13px'>No benefit items found.</p>";
+  var cats = {};
+  rows.forEach(function(r) { if (!cats[r.cat]) cats[r.cat] = []; cats[r.cat].push(r); });
+  var html = '<div class="tob-wrap"><table><thead><tr>' +
+    '<th>Service / Benefit</th><th>Network</th><th>Term</th>' +
+    '<th>Max Limit</th><th>Copay %</th><th>Max Copay</th><th>Notes</th>' +
+    '</tr></thead><tbody>';
+  Object.entries(cats).forEach(function(e) {
+    html += '<tr class="cat-row"><td colspan="7"><span class="cat-badge" style="' + catStyle(e[0]) + '">' + e[0] + '</span></td></tr>';
+    e[1].forEach(function(r) {
+      var lim = r.limitRaw >= 9000000 ? '<span class="unlimited">∞ Unlimited</span>' : '<strong>' + r.limit + '</strong>';
+      html += '<tr>' +
+        '<td style="padding-left:18px">' + r.name + (r.desc && !r.room ? '<div style="font-size:10px;color:#aaa">' + r.desc + '</div>' : '') + '</td>' +
+        '<td style="color:#aaa;font-size:11px">' + (r.network === "In Network" ? "✓ In-Net" : "⊘ OON") + '</td>' +
+        '<td style="font-size:11px;color:#aaa">' + r.term + '</td>' +
+        '<td>' + lim + '</td><td>' + r.copay + '</td><td>' + r.maxCopay + '</td>' +
+        '<td style="font-size:11px;color:#aaa">' + (r.room ? "Room: " + r.room : (r.desc || "--")) + '</td></tr>';
+    });
+  });
+  return html + '</tbody></table></div>';
+}
+
+function buildResultHTML(data) {
+  var cov = (data.coverages && data.coverages[0]) || {};
+  var cl  = (cov.classList || []).find(function(c) { return c.classType === "class"; })  || {};
+  var cp  = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "copaypct"; }) || {};
+  var mx  = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "maxcopay"; }) || {};
+  var rows = parseTOB(data);
+  var cats = new Set(rows.map(function(r) { return r.cat; })).size;
+  var isOk   = data.siteEligibility === "eligible";
+  var noCov  = data.outcome === "No Coverage";
+
+  var html = "";
+
+  if (noCov) {
+    html += '<div class="elig-warn">⚠ NO COVERAGE — ' + data.disposition + '</div>';
+  } else {
+    html += '<div class="' + (isOk ? "elig-ok" : "elig-err") + '">' +
+      (isOk ? "✅" : "❌") + " " + (isOk ? "ELIGIBLE" : "NOT ELIGIBLE") +
+      " — " + data.disposition + " — " + data.outcome + "</div>";
+  }
+
+  if (!noCov) {
+    html += '<div class="stat-row">' +
+      '<div class="stat"><div class="stat-val">' + (cl.className || "--") + '</div><div class="stat-lbl">Class</div></div>' +
+      '<div class="stat"><div class="stat-val" style="font-size:14px">' + (cov.memberId || "--") + '</div><div class="stat-lbl">Member ID</div></div>' +
+      '<div class="stat"><div class="stat-val">' + (cp.costBeneficiaryQut ? cp.costBeneficiaryQut + "%" : "--") + '</div><div class="stat-lbl">Copay</div></div>' +
+      '<div class="stat"><div class="stat-val" style="font-size:14px">' + (mx.costBeneficiaryMoney ? mx.costBeneficiaryMoney + " SAR" : "--") + '</div><div class="stat-lbl">Max Copay/Visit</div></div>' +
+      '</div>';
+  }
+
+  html += '<div class="info-grid">';
+  html += '<div class="info-box"><h3>Patient (from NPHIES)</h3>' +
+    '<div class="info-row"><span class="info-key">Name</span><span class="info-val"><strong>' + data.beneficiaryName + '</strong></span></div>' +
+    '<div class="info-row"><span class="info-key">ID Type</span><span class="info-val">' + (DOC_LABELS[data.documentType] || data.documentType || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">ID Number</span><span class="info-val">' + data.documentId + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Transaction</span><span class="info-val">' + (data.transactionId || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Service Date</span><span class="info-val">' + (data.serviceDate || "").substring(0, 10) + '</span></div>' +
+    '</div>';
+
+  html += '<div class="info-box"><h3>Coverage (from NPHIES)</h3>' +
+    '<div class="info-row"><span class="info-key">Payer ID</span><span class="info-val" style="color:#1D9E75">' + (data.payerId || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Member ID</span><span class="info-val">' + (cov.memberId || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Policy No.</span><span class="info-val">' + (cov.policyNumber || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Policy Holder</span><span class="info-val" style="font-size:11px">' + (cov.policyHolder || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Coverage Type</span><span class="info-val">' + (cov.type || "--") + '</span></div>' +
+    '<div class="info-row"><span class="info-key">Valid</span><span class="info-val">' + ((cov.benefitStartDate || "").substring(0, 10)) + (cov.benefitStartDate ? " → " : "") + ((cov.benefitEndDate || "").substring(0, 10)) + '</span></div>' +
+    '</div>';
+  html += '</div>';
+
+  if (!noCov && rows.length) {
+    html += '<div class="card"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
+      '<span style="font-size:13px; font-weight:600;">Table of Benefits <span style="font-weight:400; color:#aaa; font-size:11px;">· ' + rows.length + ' items · ' + cats + ' categories</span></span>' +
+      '<button class="btn btn-outline btn-sm" onclick="exportSingleExcel()">📥 Export Excel</button>' +
+      '</div>' + buildTOBTable(rows) + '</div>';
+  }
+
+  return html;
+}
+
+// SINGLE
+async function runSingle() {
+  var branch = document.getElementById("s-branch").value;
+  var idt    = document.getElementById("s-idtype").value;
+  var idn    = document.getElementById("s-idnum").value.trim();
+  var pid    = getPid(branch);
+  if (!idn)  { alert("Please enter an ID number"); return; }
+  if (!pid)  { alert("No Provider ID for " + BRANCH_NAMES[branch] + ". Add it in Settings."); return; }
+
+  idt = autoDetectType(idn) || idt;
+  document.getElementById("s-idtype").value = idt;
+
+  var btn = document.getElementById("btn-single");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verifying...';
+  document.getElementById("single-result").innerHTML = "";
+
+  try {
+    var r = await fetch("/api/verify", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ providerId: pid, documentId: idn, documentType: idt })
+    });
+    var d = await r.json();
+    if (!r.ok) {
+      document.getElementById("single-result").innerHTML =
+        '<div class="err-box"><strong>Error:</strong> ' + (d.message || d.error || JSON.stringify(d)) + '</div>';
+      return;
+    }
+    singleData = d;
+    document.getElementById("single-result").innerHTML = buildResultHTML(d);
+  } catch(e) {
+    document.getElementById("single-result").innerHTML = '<div class="err-box">' + e.message + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "🛡 Verify Eligibility";
+  }
+}
+
+function exportSingleExcel() {
+  if (!singleData) return;
+  doExportExcel([{ ok: true, data: singleData }], false);
+}
+
+// BULK
+function updateCount() {
+  var ids = getBulkIds();
+  document.getElementById("b-count").textContent = ids.length + " ID" + (ids.length === 1 ? "" : "s") + " entered";
+}
+
+function getBulkIds() {
+  return document.getElementById("b-ids").value
+    .split("\n").map(function(l) { return l.trim(); }).filter(function(l) { return l.length >= 5; });
+}
+
+function clearBulk() {
+  document.getElementById("b-ids").value = "";
+  document.getElementById("b-count").textContent = "0 IDs entered";
+  document.getElementById("b-progress").style.display = "none";
+  document.getElementById("b-results").innerHTML = "";
+  bulkResults = [];
+}
+
+function loadFile(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var wb   = XLSX.read(ev.target.result, { type: "binary" });
+      var ws   = wb.Sheets[wb.SheetNames[0]];
+      var data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      var ids  = [];
+      data.forEach(function(row) {
+        if (row && row[0]) { var v = String(row[0]).trim(); if (v.length >= 5) ids.push(v); }
+      });
+      document.getElementById("b-ids").value = ids.join("\n");
+      document.getElementById("b-count").textContent = ids.length + " IDs loaded from file";
+    } catch(err) { alert("File error: " + err.message); }
+  };
+  reader.readAsBinaryString(file);
+  e.target.value = "";
+}
+
+function togglePause() {
+  bulkPaused = !bulkPaused;
+  document.getElementById("btn-pause").textContent = bulkPaused ? "▶ Resume" : "⏸ Pause";
+}
+
+function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+async function runBulk() {
+  var branch = document.getElementById("b-branch-sel").value;
+  var idt    = document.getElementById("b-idtype").value;
+  var ids    = getBulkIds();
+  var pid    = getPid(branch);
+  if (!ids.length) { alert("Enter at least one ID"); return; }
+  if (!pid) { alert("No Provider ID for " + BRANCH_NAMES[branch] + ". Add it in Settings."); return; }
+
+  bulkResults = []; bulkPaused = false;
+
+  var tableHTML = '<div class="card"><div style="overflow-x:auto"><table id="b-tbl">' +
+    '<thead><tr><th>#</th><th>ID Number</th><th>Type</th><th>Name</th><th>Payer ID</th>' +
+    '<th>Member ID</th><th>Policy No.</th><th>Class</th><th>Valid Until</th>' +
+    '<th>Copay</th><th>Eligibility</th><th>TOB</th></tr></thead>' +
+    '<tbody id="b-tbody"></tbody></table></div></div>';
+  document.getElementById("b-results").innerHTML = tableHTML;
+
+  ids.forEach(function(id, i) {
+    var autoType = idt === "AUTO" ? autoDetectType(id) : idt;
+    var tr = document.createElement("tr");
+    tr.id  = "brow-" + i;
+    tr.innerHTML = '<td style="color:#aaa">' + (i+1) + '</td>' +
+      '<td style="font-family:monospace;font-size:12px">' + id + '</td>' +
+      '<td style="font-size:11px;color:#888">' + autoType + '</td>' +
+      '<td colspan="9" style="color:#aaa"><span class="spinner spinner-g"></span> Pending...</td>';
+    document.getElementById("b-tbody").appendChild(tr);
+  });
+
+  document.getElementById("b-progress").style.display = "block";
+  document.getElementById("btn-export-bulk").style.display = "none";
+  document.getElementById("btn-bulk").disabled = true;
+  document.getElementById("btn-pause").style.display = "inline-flex";
+  updateProg(0, ids.length, 0, 0, 0);
+
+  for (var i = 0; i < ids.length; i++) {
+    while (bulkPaused) await sleep(300);
+    var idType = idt === "AUTO" ? autoDetectType(ids[i]) : idt;
+    await processBulkOne(ids[i], i, pid, idType);
+    var ok  = bulkResults.filter(function(r) { return r.ok; }).length;
+    var nc  = bulkResults.filter(function(r) { return r.noCov; }).length;
+    var err = bulkResults.filter(function(r) { return !r.ok && !r.noCov; }).length;
+    updateProg(i + 1, ids.length, ok, nc, err);
+  }
+  finishBulk();
+}
+
+async function processBulkOne(id, i, pid, idType) {
+  var row = document.getElementById("brow-" + i);
+  if (row) {
+    while (row.cells.length > 3) row.deleteCell(3);
+    var td = row.insertCell(3);
+    td.colSpan = 9;
+    td.innerHTML = '<span class="spinner spinner-g"></span> <span style="color:#aaa">Verifying...</span>';
+  }
+  try {
+    var r = await fetch("/api/verify", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ providerId: pid, documentId: id, documentType: idType })
+    });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.message || d.error || "Error " + r.status);
+
+    var noCov = d.outcome === "No Coverage";
+    var cov   = (d.coverages && d.coverages[0]) || {};
+    var cl    = (cov.classList || []).find(function(c) { return c.classType === "class"; }) || {};
+    var cp    = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "copaypct"; }) || {};
+    bulkResults.push({ ok: !noCov, noCov: noCov, id: id, data: d });
+
+    if (row) {
+      if (noCov) {
+        row.innerHTML =
+          '<td style="color:#aaa">' + (bulkResults.length) + '</td>' +
+          '<td style="font-family:monospace;font-size:12px">' + id + '</td>' +
+          '<td style="font-size:11px">' + (DOC_LABELS[idType] || idType) + '</td>' +
+          '<td style="font-weight:600;color:#333">' + d.beneficiaryName + '</td>' +
+          '<td colspan="6" style="color:#92400e;font-size:12px">⚠ No active insurance plan found</td>' +
+          '<td><span class="badge badge-amber">No Plan</span></td><td></td>';
+      } else {
+        row.innerHTML =
+          '<td style="color:#aaa">' + (bulkResults.length) + '</td>' +
+          '<td style="font-family:monospace;font-size:12px">' + id + '</td>' +
+          '<td style="font-size:11px">' + (DOC_LABELS[idType] || idType) + '</td>' +
+          '<td style="font-weight:600;color:#166534">' + d.beneficiaryName + '</td>' +
+          '<td style="font-size:11px">' + (d.payerId || "--") + '</td>' +
+          '<td style="font-family:monospace;font-size:11px">' + (cov.memberId || "--") + '</td>' +
+          '<td style="font-size:11px">' + (cov.policyNumber || "--") + '</td>' +
+          '<td><span class="badge badge-blue">' + (cl.className || "--") + '</span></td>' +
+          '<td style="font-size:11px">' + ((cov.benefitEndDate || "").substring(0, 10)) + '</td>' +
+          '<td style="font-size:12px">' + (cp.costBeneficiaryQut ? cp.costBeneficiaryQut + "%" : "--") + '</td>' +
+          '<td><span class="badge badge-green">✓ Eligible</span></td>' +
+          '<td><button class="btn btn-outline btn-sm" onclick="toggleTOB(' + (bulkResults.length - 1) + ', this)">TOB</button></td>';
+      }
+    }
+  } catch(err) {
+    bulkResults.push({ ok: false, noCov: false, id: id, error: err.message });
+    if (row) {
+      row.innerHTML =
+        '<td style="color:#aaa">' + bulkResults.length + '</td>' +
+        '<td style="font-family:monospace;font-size:12px">' + id + '</td>' +
+        '<td style="font-size:11px">' + (DOC_LABELS[idType] || idType) + '</td>' +
+        '<td colspan="8" style="color:#e53e3e;font-size:12px">✗ ' + err.message + '</td>';
+    }
+  }
+}
+
+function toggleTOB(i, btn) {
+  var res     = bulkResults[i];
+  if (!res || !res.ok) return;
+  var brow    = btn.closest("tr");
+  var nextRow = brow.nextElementSibling;
+  if (nextRow && nextRow.classList.contains("tob-expand")) {
+    nextRow.remove();
+    btn.textContent = "TOB";
+    return;
+  }
+  var rows = parseTOB(res.data);
+  var tr   = document.createElement("tr");
+  tr.className = "tob-expand";
+  tr.innerHTML = '<td colspan="12" style="padding:0">' +
+    '<div class="tob-expand-inner">' +
+    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">' +
+    '<strong>' + res.data.beneficiaryName + ' — Table of Benefits (' + rows.length + ' items)</strong>' +
+    '<button class="btn btn-outline btn-sm" onclick="exportOneExcel(' + i + ')">📥 Export Excel</button>' +
+    '</div>' + buildTOBTable(rows) + '</div></td>';
+  brow.after(tr);
+  btn.textContent = "Hide";
+}
+
+window.exportOneExcel = function(i) {
+  var res = bulkResults[i];
+  if (!res || !res.ok) return;
+  doExportExcel([res], false);
+};
+
+function finishBulk() {
+  var ok  = bulkResults.filter(function(r) { return r.ok; }).length;
+  var nc  = bulkResults.filter(function(r) { return r.noCov; }).length;
+  var err = bulkResults.length - ok - nc;
+  document.getElementById("b-prog-label").textContent =
+    "✓ Complete — " + ok + " eligible, " + nc + " no plan" + (err ? ", " + err + " errors" : "");
+  document.getElementById("btn-export-bulk").style.display = "inline-flex";
+  document.getElementById("btn-bulk").disabled = false;
+  document.getElementById("btn-pause").style.display = "none";
+}
+
+function updateProg(done, total, ok, nc, err) {
+  var pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("b-prog-bar").style.width = pct + "%";
+  document.getElementById("b-prog-nums").textContent = done + " / " + total;
+  document.getElementById("b-prog-stats").textContent =
+    ok + " eligible · " + nc + " no plan" + (err ? " · " + err + " errors" : "");
+  if (done < total)
+    document.getElementById("b-prog-label").textContent = "Processing " + done + " of " + total + "...";
+}
+
+function exportBulkExcel() {
+  var eligible = bulkResults.filter(function(r) { return r.ok; });
+  doExportExcel(bulkResults, true);
+}
+
+function doExportExcel(results, isBulk) {
+  var wb = XLSX.utils.book_new();
+
+  // Summary sheet
+  var sumRows = [
+    ["NPHIES ELIGIBILITY VERIFICATION — WASEEL ECLAIMS"],
+    ["Generated", new Date().toLocaleString("en-SA"), "", "Total Records", results.length],
+    []
+  ];
+
+  if (isBulk) {
+    sumRows.push(["#", "ID Number", "ID Type", "Name", "Payer ID", "Member ID",
+      "Policy No.", "Policy Holder", "Class", "Valid From", "Valid To",
+      "Copay %", "Max Copay", "Eligibility", "Notes"]);
+    results.forEach(function(res, i) {
+      var d   = res.data || {};
+      var cov = (d.coverages && d.coverages[0]) || {};
+      var cl  = (cov.classList || []).find(function(c) { return c.classType === "class"; }) || {};
+      var cp  = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "copaypct"; }) || {};
+      var mx  = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "maxcopay"; }) || {};
+      sumRows.push([
+        i + 1,
+        res.id || d.documentId,
+        DOC_LABELS[d.documentType] || d.documentType || "",
+        d.beneficiaryName || "",
+        d.payerId || "",
+        cov.memberId || "",
+        cov.policyNumber || "",
+        cov.policyHolder || "",
+        cl.className || "",
+        (cov.benefitStartDate || "").substring(0, 10),
+        (cov.benefitEndDate   || "").substring(0, 10),
+        cp.costBeneficiaryQut ? cp.costBeneficiaryQut + "%" : "--",
+        mx.costBeneficiaryMoney ? mx.costBeneficiaryMoney + " SAR" : "--",
+        res.noCov ? "No Plan" : (d.siteEligibility || ""),
+        res.noCov ? "No active insurance plan found" : (d.disposition || "")
+      ]);
+    });
+  } else {
+    var d   = results[0].data || {};
+    var cov = (d.coverages && d.coverages[0]) || {};
+    var cl  = (cov.classList || []).find(function(c) { return c.classType === "class"; }) || {};
+    var cp  = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "copaypct"; }) || {};
+    var mx  = (cov.costBeneficiaries || []).find(function(c) { return c.costBeneficiaryType === "maxcopay"; }) || {};
+    [["PATIENT"], ["Name", d.beneficiaryName], ["ID Type", DOC_LABELS[d.documentType] || d.documentType], ["ID Number", d.documentId],
+     ["Transaction", d.transactionId], ["Service Date", (d.serviceDate || "").substring(0, 10)],
+     [], ["COVERAGE"],
+     ["Payer ID", d.payerId], ["Member ID", cov.memberId], ["Policy No.", cov.policyNumber],
+     ["Policy Holder", cov.policyHolder], ["Class", cl.className],
+     ["Valid", (cov.benefitStartDate||"").substring(0,10) + " to " + (cov.benefitEndDate||"").substring(0,10)],
+     ["Copay", cp.costBeneficiaryQut ? cp.costBeneficiaryQut + "%" : "--"],
+     ["Max Copay/Visit", mx.costBeneficiaryMoney ? mx.costBeneficiaryMoney + " SAR" : "--"],
+     ["Eligibility", d.siteEligibility], ["Disposition", d.disposition]
+    ].forEach(function(r) { sumRows.push(r); });
+  }
+
+  var ws1 = XLSX.utils.aoa_to_sheet(sumRows);
+  ws1["!cols"] = isBulk
+    ? [{wch:4},{wch:14},{wch:12},{wch:30},{wch:14},{wch:14},{wch:12},{wch:42},{wch:8},{wch:12},{wch:12},{wch:10},{wch:14},{wch:12},{wch:35}]
+    : [{wch:20},{wch:42}];
+  XLSX.utils.book_append_sheet(wb, ws1, isBulk ? "Bulk Summary" : "Eligibility Summary");
+
+  // TOB sheet
+  var tobRows = [
+    ["TABLE OF BENEFITS" + (isBulk ? " — ALL PATIENTS" : "")],
+    ["Generated: " + new Date().toLocaleString("en-SA") + (isBulk ? " · " + results.filter(function(r){return r.ok;}).length + " eligible patients" : "")],
+    []
+  ];
+
+  results.filter(function(r) { return r.ok; }).forEach(function(res) {
+    var d   = res.data || {};
+    var cov = (d.coverages && d.coverages[0]) || {};
+    var cl  = (cov.classList || []).find(function(c) { return c.classType === "class"; }) || {};
+    tobRows.push(["▸ " + d.beneficiaryName + " | " + d.documentType + ": " + d.documentId +
+      " | Payer: " + d.payerId + " | Class: " + (cl.className || "--") + " | Policy: " + (cov.policyNumber || "--")]);
+    tobRows.push(["Category", "Service / Benefit", "Description", "Network", "Term",
+      "Max Limit", "Copay %", "Max Copay/Service", "Room / Notes"]);
+    parseTOB(d).forEach(function(r) {
+      tobRows.push([r.cat, r.name, r.desc, r.network, r.term,
+        r.limitRaw >= 9000000 ? "Unlimited" : (r.limitRaw || ""),
+        r.copay, r.maxCopay, r.room || ""]);
+    });
+    tobRows.push([]);
+  });
+
+  var ws2 = XLSX.utils.aoa_to_sheet(tobRows);
+  ws2["!cols"] = [{wch:30},{wch:28},{wch:16},{wch:12},{wch:28},{wch:14},{wch:10},{wch:18},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, ws2, "Table of Benefits");
+
+  var fname = isBulk
+    ? "NPHIES_Bulk_" + results.length + "patients_" + new Date().toISOString().split("T")[0] + ".xlsx"
+    : "NPHIES_" + (results[0].data || {}).documentId + "_" + new Date().toISOString().split("T")[0] + ".xlsx";
+  XLSX.writeFile(wb, fname);
+}
+</script>
+</body>
+</html>
