@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-09-14T16:03:00",
+  "branch": "Jeddah",
+  "provider_id": "649",
+  "upload_id": 926166,
+  "extraction_name": "EXT_IP_20260914_154318",
+  "batch_status": "All Claims Accepted",
+  "claims": [
+    {
+      "claimId": 186223044,
+      "provClaimNo": "SGHCLA000076040_1",
+      "file": "IP0000001225.json",
+      "status": "Accepted",
+      "net": 196240.83,
+      "errors": 0
+    },
+    {
+      "claimId": 186223042,
+      "provClaimNo": "SGHCLA000076041_8",
+      "file": "IP0000003620.json",
+      "status": "Accepted",
+      "net": 165943.03,
+      "errors": 0
+    },
+    {
+      "claimId": 186223040,
+      "provClaimNo": "SGHCLA000076073",
+      "file": "IP0000004589.json",
+      "status": "Accepted",
+      "net": 22652.17,
+      "errors": 0
+    }
+  ],
+  "totalNet": 384836.03,
+  "waseel_portal_url": "https://eclaims.waseel.com/en/nphies/summary?id=926166"
+}
